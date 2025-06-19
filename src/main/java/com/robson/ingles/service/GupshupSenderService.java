@@ -28,12 +28,17 @@ public class GupshupSenderService {
             headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
             headers.set("apikey", gupshupApiKey);
 
+            // ✅ Mensagem em formato JSON no campo 'message'
+            String mensagemJson = String.format("{\"type\":\"text\",\"text\":\"%s\"}", mensagem);
+
             MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
             body.add("channel", "whatsapp");
             body.add("source", appName);
             body.add("destination", phoneNumber);
-            body.add("message", mensagem);
+            body.add("message", mensagemJson);
             body.add("src.name", appName);
+            body.add("disablePreview", "false");
+            body.add("encode", "false");
 
             // 🔎 Logs detalhados para debug
             log.info("🔎 Corpo da requisição a ser enviado: {}", body);
