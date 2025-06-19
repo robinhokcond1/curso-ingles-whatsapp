@@ -1,6 +1,7 @@
 package com.robson.ingles.controller;
 
 import com.robson.ingles.dto.ComandoResposta;
+import com.robson.ingles.service.GupshupSenderService;
 import com.robson.ingles.service.MensagemService;
 import com.robson.ingles.service.interfaces.IAiService;
 import lombok.RequiredArgsConstructor;
@@ -18,10 +19,11 @@ public class GupshupWebhookController {
 
     private final IAiService aiService;
     private final MensagemService mensagemService;
+    private final GupshupSenderService gupshupSenderService;
 
     @GetMapping
     public ResponseEntity<String> testWebhook() {
-        return ResponseEntity.ok("Webhook ativo!");
+        return ResponseEntity.ok("✅ Webhook ativo!");
     }
 
     @PostMapping
@@ -32,37 +34,40 @@ public class GupshupWebhookController {
         try {
             String type = (String) payload.get("type");
             if (!"message".equals(type)) {
-                log.warn("⚠️ Ignorando evento do tipo: {}", type);
+                log.warn("⚠️ Evento ignorado: tipo {}", type);
                 return ResponseEntity.ok("Evento ignorado.");
             }
 
             Map<String, Object> messagePayload = (Map<String, Object>) payload.get("payload");
             if (messagePayload == null || !"text".equals(messagePayload.get("type"))) {
-                log.warn("⚠️ Tipo de mensagem não suportado ou payload vazio.");
+                log.warn("⚠️ Tipo de mensagem não suportado.");
                 return ResponseEntity.ok("Tipo de mensagem não suportado.");
             }
 
             Map<String, Object> innerPayload = (Map<String, Object>) messagePayload.get("payload");
-            String text = (String) innerPayload.get("text");
+            String textoRecebido = (String) innerPayload.get("text");
 
-            if (text == null || text.trim().isEmpty()) {
-                log.warn("⚠️ Texto não encontrado no payload.");
-                return ResponseEntity.ok("Sem texto para processar.");
+            String remetente = (String) messagePayload.get("sender");
+            if (textoRecebido == null || remetente == null) {
+                log.warn("⚠️ Texto ou número do remetente ausente.");
+                return ResponseEntity.ok("Dados incompletos.");
             }
 
-            log.info("➡️ Texto extraído: {}", text);
-            ComandoResposta comando = mensagemService.interpretarMensagem(text);
+            log.info("📥 [{}] -> {}", remetente, textoRecebido);
+            ComandoResposta comando = mensagemService.interpretarMensagem(textoRecebido);
 
             String resposta = comando.isUsarIA()
                     ? aiService.ask(comando.getConteudo(), comando.getTipo())
                     : comando.getConteudo();
 
-            log.info("⬅️ Resposta da IA: {}", resposta);
-            return ResponseEntity.ok(resposta);
+            gupshupSenderService.enviarTexto(remetente, resposta);
+
+            log.info("📤 Resposta enviada: {}", resposta);
+            return ResponseEntity.ok("Mensagem processada com sucesso.");
 
         } catch (Exception e) {
             log.error("❌ Erro ao processar mensagem", e);
-            return ResponseEntity.ok("Erro ao processar a mensagem.");
+            return ResponseEntity.ok("Erro ao processar mensagem.");
         }
     }
 }
