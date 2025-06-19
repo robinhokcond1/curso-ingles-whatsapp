@@ -4,10 +4,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
-
-import java.util.HashMap;
-import java.util.Map;
 
 @Slf4j
 @Service
@@ -29,20 +28,21 @@ public class GupshupSenderService {
             headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
             headers.set("apikey", gupshupApiKey);
 
-            Map<String, String> body = new HashMap<>();
-            body.put("channel", "whatsapp");
-            body.put("source", appName);
-            body.put("destination", phoneNumber);
-            body.put("message", "{\"type\":\"text\",\"text\":\"" + mensagem + "\"}");
-            body.put("src.name", appName);
+            MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
+            body.add("channel", "whatsapp");
+            body.add("source", appName);
+            body.add("destination", phoneNumber);
+            body.add("message", mensagem);
+            body.add("src.name", appName);
 
-            HttpEntity<Map<String, String>> request = new HttpEntity<>(body, headers);
+            HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(body, headers);
+
             ResponseEntity<String> response = restTemplate.postForEntity(GUPSHUP_URL, request, String.class);
 
             log.info("✉️ Mensagem enviada via Gupshup para {}: {}", phoneNumber, mensagem);
-            log.debug("Resposta da Gupshup: {}", response.getBody());
+            log.debug("📬 Resposta da Gupshup: {}", response.getBody());
         } catch (Exception e) {
-            log.error("❌ Erro ao enviar mensagem para Gupshup: {}", e.getMessage(), e);
+            log.error("❌ Erro ao enviar mensagem para Gupshup: {}", e.getMessage());
         }
     }
 }
