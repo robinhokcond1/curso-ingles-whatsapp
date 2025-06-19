@@ -12,7 +12,7 @@ import org.springframework.web.client.RestTemplate;
 @Service
 public class GupshupSenderService {
 
-    private static final String GUPSHUP_URL = "https://api.gupshup.io/sm/api/v1/msg";
+    private static final String GUPSHUP_URL = "https://api.gupshup.io/wa/api/v1/msg";
 
     @Value("${gupshup.api.key:}")
     private String gupshupApiKey;
@@ -28,19 +28,18 @@ public class GupshupSenderService {
             headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
             headers.set("apikey", gupshupApiKey);
 
-            // ✅ Mensagem em formato JSON no campo 'message'
-            String mensagemJson = String.format("{\"type\":\"text\",\"text\":\"%s\"}", mensagem);
+            String payloadMensagem = String.format("{\"type\":\"text\",\"text\":%s}", wrapJson(mensagem));
 
             MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
             body.add("channel", "whatsapp");
             body.add("source", appName);
             body.add("destination", phoneNumber);
-            body.add("message", mensagemJson);
+            body.add("message", payloadMensagem);
             body.add("src.name", appName);
             body.add("disablePreview", "false");
             body.add("encode", "false");
 
-            // 🔎 Logs detalhados para debug
+            // Logs para validação
             log.info("🔎 Corpo da requisição a ser enviado: {}", body);
             log.info("🔑 Header da requisição: Content-Type: {}", headers.getContentType());
 
@@ -52,5 +51,10 @@ public class GupshupSenderService {
         } catch (Exception e) {
             log.error("❌ Erro ao enviar mensagem para Gupshup: {}", e.getMessage(), e);
         }
+    }
+
+    // Método auxiliar para escapar corretamente o conteúdo do campo text no JSON
+    private String wrapJson(String value) {
+        return "\"" + value.replace("\"", "\\\"") + "\"";
     }
 }
