@@ -35,14 +35,17 @@ public class GupshupSenderService {
             body.add("message", mensagem);
             body.add("src.name", appName);
 
-            HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(body, headers);
+            // 🔎 Logs detalhados para debug
+            log.info("🔎 Corpo da requisição a ser enviado: {}", body);
+            log.info("🔑 Header da requisição: {}", headers);
 
+            HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(body, headers);
             ResponseEntity<String> response = restTemplate.postForEntity(GUPSHUP_URL, request, String.class);
 
             log.info("✉️ Mensagem enviada via Gupshup para {}: {}", phoneNumber, mensagem);
             log.debug("📬 Resposta da Gupshup: {}", response.getBody());
         } catch (Exception e) {
-            log.error("❌ Erro ao enviar mensagem para Gupshup: {}", e.getMessage());
+            log.error("❌ Erro ao enviar mensagem para Gupshup: {}", e.getMessage(), e);
         }
     }
 }
