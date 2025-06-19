@@ -1,0 +1,14 @@
+# Ignorar arquivos de build
+/build/
+/out/
+/.gradle/
+/tmp/
+*.log
+
+# IntelliJ / IDEs
+.idea/
+*.iml
+
+# Sistema operacional
+.DS_Store
+Thumbs.db
