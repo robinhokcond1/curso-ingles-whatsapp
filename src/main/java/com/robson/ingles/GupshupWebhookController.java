@@ -9,9 +9,14 @@ import java.util.Map;
 @RequestMapping("/webhook/gupshup")
 public class GupshupWebhookController {
 
+    @GetMapping
+    public ResponseEntity<String> testWebhook() {
+        return ResponseEntity.ok("Webhook ativo!");
+    }
     @PostMapping
     public ResponseEntity<String> receiveMessage(@RequestBody Map<String, Object> payload) {
         System.out.println("Mensagem recebida do Gupshup: " + payload);
         return ResponseEntity.ok("Mensagem recebida com sucesso!");
     }
+
 }
