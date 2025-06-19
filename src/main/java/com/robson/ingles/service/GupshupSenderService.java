@@ -37,7 +37,7 @@ public class GupshupSenderService {
 
             // 🔎 Logs detalhados para debug
             log.info("🔎 Corpo da requisição a ser enviado: {}", body);
-            log.info("🔑 Header da requisição: {}", headers);
+            log.info("🔑 Header da requisição: Content-Type: {}", headers.getContentType());
 
             HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(body, headers);
             ResponseEntity<String> response = restTemplate.postForEntity(GUPSHUP_URL, request, String.class);
