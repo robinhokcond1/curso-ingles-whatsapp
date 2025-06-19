@@ -45,8 +45,10 @@ public class GupshupWebhookController {
             }
 
             Map<String, Object> innerPayload = (Map<String, Object>) messagePayload.get("payload");
+            Map<String, Object> senderInfo = (Map<String, Object>) messagePayload.get("sender");
+
             String textoRecebido = (String) innerPayload.get("text");
-            String remetente = (String) messagePayload.get("sender");
+            String remetente = (String) senderInfo.get("phone");
 
             if (textoRecebido == null || remetente == null) {
                 log.warn("⚠️ Texto ou número do remetente ausente.");
