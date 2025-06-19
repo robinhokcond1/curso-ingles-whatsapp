@@ -22,11 +22,11 @@ public class GupshupWebhookController {
     @PostMapping
     public ResponseEntity<String> receiveMessage(@RequestBody Map<String, Object> payload) {
         try {
-            Map<String, Object> messagePayload = (Map<String, Object>) payload.get("payload");
-            String message = (String) messagePayload.get("text");
+            Map<String, Object> message = (Map<String, Object>) payload.get("message");
+            String text = (String) message.get("text");
 
-            String respostaGPT = openAIService.ask(message);
-            System.out.println("➡️ Pergunta: " + message);
+            String respostaGPT = openAIService.ask(text);
+            System.out.println("➡️ Pergunta: " + text);
             System.out.println("⬅️ Resposta do GPT: " + respostaGPT);
 
             return ResponseEntity.ok(respostaGPT);
@@ -35,4 +35,5 @@ public class GupshupWebhookController {
             return ResponseEntity.ok("Erro ao processar a mensagem.");
         }
     }
+
 }
