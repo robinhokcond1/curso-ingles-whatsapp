@@ -1,19 +1,23 @@
 package com.robson.ingles.controller;
 
-import com.robson.ingles.service.OpenAIService;
+import com.robson.ingles.dto.ComandoResposta;
+import com.robson.ingles.service.MensagemService;
+import com.robson.ingles.service.interfaces.IAiService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
-import lombok.extern.slf4j.Slf4j;
+
 @Slf4j
 @RestController
 @RequestMapping("/webhook/gupshup")
 @RequiredArgsConstructor
 public class GupshupWebhookController {
 
-    private final OpenAIService openAIService;
+    private final IAiService aiService;
+    private final MensagemService mensagemService;
 
     @GetMapping
     public ResponseEntity<String> testWebhook() {
@@ -33,7 +37,6 @@ public class GupshupWebhookController {
             }
 
             Map<String, Object> messagePayload = (Map<String, Object>) payload.get("payload");
-
             if (messagePayload == null || !"text".equals(messagePayload.get("type"))) {
                 log.warn("⚠️ Tipo de mensagem não suportado ou payload vazio.");
                 return ResponseEntity.ok("Tipo de mensagem não suportado.");
@@ -48,15 +51,18 @@ public class GupshupWebhookController {
             }
 
             log.info("➡️ Texto extraído: {}", text);
+            ComandoResposta comando = mensagemService.interpretarMensagem(text);
 
-            String respostaGPT = openAIService.ask(text);
-            log.info("⬅️ Resposta do GPT: {}", respostaGPT);
+            String resposta = comando.isUsarIA()
+                    ? aiService.ask(comando.getConteudo(), comando.getTipo())
+                    : comando.getConteudo();
 
-            return ResponseEntity.ok(respostaGPT);
+            log.info("⬅️ Resposta da IA: {}", resposta);
+            return ResponseEntity.ok(resposta);
+
         } catch (Exception e) {
             log.error("❌ Erro ao processar mensagem", e);
             return ResponseEntity.ok("Erro ao processar a mensagem.");
         }
     }
-
 }
