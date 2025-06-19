@@ -22,24 +22,33 @@ public class GupshupWebhookController {
 
     @PostMapping
     public ResponseEntity<String> receiveMessage(@RequestBody Map<String, Object> payload) {
-        log.info("📩 Payload recebido: {}", payload);
+        System.out.println("📨 Payload bruto recebido do Gupshup:");
+        payload.forEach((k, v) -> System.out.println(k + ": " + v));
 
         try {
-            if (!"message".equals(payload.get("type"))) {
-                log.info("⚠️ Ignorando evento do tipo '{}'", payload.get("type"));
-                return ResponseEntity.ok("Evento ignorado");
+            String type = (String) payload.get("type");
+            if (!"message".equals(type)) {
+                System.out.println("⚠️ Ignorando evento do tipo: " + type);
+                return ResponseEntity.ok("Evento ignorado.");
             }
 
             Map<String, Object> message = (Map<String, Object>) payload.get("payload");
             String text = (String) message.get("text");
 
-            log.info("➡️ Texto extraído: {}", text);
+            if (text == null) {
+                System.out.println("⚠️ Texto não encontrado no payload.");
+                return ResponseEntity.ok("Sem texto para processar.");
+            }
+
+            System.out.println("➡️ Texto extraído: " + text);
+
             String respostaGPT = openAIService.ask(text);
-            log.info("✅ Resposta do GPT: {}", respostaGPT);
+            System.out.println("⬅️ Resposta do GPT: " + respostaGPT);
 
             return ResponseEntity.ok(respostaGPT);
         } catch (Exception e) {
-            log.error("❌ Erro ao processar mensagem: ", e);
+            System.out.println("❌ Erro ao processar mensagem: " + e.getMessage());
+            e.printStackTrace();
             return ResponseEntity.ok("Erro ao processar a mensagem.");
         }
     }
