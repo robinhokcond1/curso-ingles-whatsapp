@@ -46,8 +46,8 @@ public class GupshupWebhookController {
 
             Map<String, Object> innerPayload = (Map<String, Object>) messagePayload.get("payload");
             String textoRecebido = (String) innerPayload.get("text");
-
             String remetente = (String) messagePayload.get("sender");
+
             if (textoRecebido == null || remetente == null) {
                 log.warn("⚠️ Texto ou número do remetente ausente.");
                 return ResponseEntity.ok("Dados incompletos.");
