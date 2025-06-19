@@ -6,7 +6,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
-
+import lombok.extern.slf4j.Slf4j;
+@Slf4j
 @RestController
 @RequestMapping("/webhook/gupshup")
 @RequiredArgsConstructor
@@ -21,35 +22,24 @@ public class GupshupWebhookController {
 
     @PostMapping
     public ResponseEntity<String> receiveMessage(@RequestBody Map<String, Object> payload) {
-        System.out.println("📨 Payload bruto recebido do Gupshup:");
-        payload.forEach((k, v) -> System.out.println("🔹 " + k + ": " + v));
+        log.info("📩 Payload recebido: {}", payload);
 
         try {
-            Map<String, Object> message;
-
-            if (payload.containsKey("message")) {
-                message = (Map<String, Object>) payload.get("message");
-                System.out.println("📦 Usando 'message' como chave.");
-            } else if (payload.containsKey("payload")) {
-                message = (Map<String, Object>) payload.get("payload");
-                System.out.println("📦 Usando 'payload' como chave.");
-            } else {
-                System.out.println("❌ Nenhuma chave esperada encontrada no payload.");
-                return ResponseEntity.ok("Formato de payload não suportado.");
+            if (!"message".equals(payload.get("type"))) {
+                log.info("⚠️ Ignorando evento do tipo '{}'", payload.get("type"));
+                return ResponseEntity.ok("Evento ignorado");
             }
 
-            message.forEach((k, v) -> System.out.println("📝 Campo do message: " + k + " => " + v));
-
+            Map<String, Object> message = (Map<String, Object>) payload.get("payload");
             String text = (String) message.get("text");
-            System.out.println("➡️ Texto extraído: " + text);
 
+            log.info("➡️ Texto extraído: {}", text);
             String respostaGPT = openAIService.ask(text);
-            System.out.println("⬅️ Resposta do GPT: " + respostaGPT);
+            log.info("✅ Resposta do GPT: {}", respostaGPT);
 
             return ResponseEntity.ok(respostaGPT);
         } catch (Exception e) {
-            System.out.println("⚠️ Erro ao processar mensagem: " + e.getMessage());
-            e.printStackTrace();
+            log.error("❌ Erro ao processar mensagem: ", e);
             return ResponseEntity.ok("Erro ao processar a mensagem.");
         }
     }
