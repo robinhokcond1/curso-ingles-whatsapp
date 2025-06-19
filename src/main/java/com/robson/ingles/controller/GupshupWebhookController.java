@@ -22,13 +22,25 @@ public class GupshupWebhookController {
     @PostMapping
     public ResponseEntity<String> receiveMessage(@RequestBody Map<String, Object> payload) {
         System.out.println("📨 Payload bruto recebido do Gupshup:");
-        payload.forEach((k, v) -> System.out.println(k + ": " + v));
+        payload.forEach((k, v) -> System.out.println("🔹 " + k + ": " + v));
 
         try {
-            // Gupshup v2 normalmente envia em "message"
-            Map<String, Object> message = (Map<String, Object>) payload.get("message");
-            String text = (String) message.get("text");
+            Map<String, Object> message;
 
+            if (payload.containsKey("message")) {
+                message = (Map<String, Object>) payload.get("message");
+                System.out.println("📦 Usando 'message' como chave.");
+            } else if (payload.containsKey("payload")) {
+                message = (Map<String, Object>) payload.get("payload");
+                System.out.println("📦 Usando 'payload' como chave.");
+            } else {
+                System.out.println("❌ Nenhuma chave esperada encontrada no payload.");
+                return ResponseEntity.ok("Formato de payload não suportado.");
+            }
+
+            message.forEach((k, v) -> System.out.println("📝 Campo do message: " + k + " => " + v));
+
+            String text = (String) message.get("text");
             System.out.println("➡️ Texto extraído: " + text);
 
             String respostaGPT = openAIService.ask(text);
