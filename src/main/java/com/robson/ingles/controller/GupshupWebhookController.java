@@ -32,10 +32,11 @@ public class GupshupWebhookController {
                 return ResponseEntity.ok("Evento ignorado.");
             }
 
-            Map<String, Object> message = (Map<String, Object>) payload.get("payload");
-            String text = (String) message.get("text");
+            // Corrigido aqui: buscar text dentro de payload.payload.text
+            Map<String, Object> innerPayload = (Map<String, Object>) payload.get("payload");
+            String text = (String) innerPayload.get("text");
 
-            if (text == null) {
+            if (text == null || text.trim().isEmpty()) {
                 System.out.println("⚠️ Texto não encontrado no payload.");
                 return ResponseEntity.ok("Sem texto para processar.");
             }
